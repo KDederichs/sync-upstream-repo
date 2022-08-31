@@ -38,33 +38,12 @@ git config --local user.password ${GITHUB_TOKEN}
 git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
 git remote add upstream "$UPSTREAM_REPO"
-git fetch ${FETCH_ARGS} upstream
+git fetch --tags upstream
 git remote -v
 
 git checkout ${DOWNSTREAM_BRANCH}
 
-case ${SPAWN_LOGS} in
-  (true)    echo -n "sync-upstream-repo https://github.com/dabreadman/sync-upstream-repo keeping CI alive."\
-            "UNIX Time: " >> sync-upstream-repo
-            date +"%s" >> sync-upstream-repo
-            git add sync-upstream-repo
-            git commit sync-upstream-repo -m "Syncing upstream";;
-  (false)   echo "Not spawning time logs"
-esac
-
-git push origin
-
-MERGE_RESULT=$(git merge ${MERGE_ARGS} upstream/${UPSTREAM_BRANCH})
-
-
-if [[ $MERGE_RESULT == "" ]] 
-then
-  exit 1
-elif [[ $MERGE_RESULT != *"Already up to date."* ]]
-then
-  git commit -m "Merged upstream"
-  git push ${PUSH_ARGS} origin ${DOWNSTREAM_BRANCH} || exit $?
-fi
+git push --tags origin
 
 cd ..
 rm -rf work
